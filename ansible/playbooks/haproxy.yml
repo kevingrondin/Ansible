@@ -1,0 +1,24 @@
+---
+- hosts: dev_lb
+
+  roles:
+  - geerlingguy.haproxy
+
+  vars:
+    haproxy_backends_servers:
+    - name: devops-web-3
+      address: devops-web-3:80
+    - name: devops-web-4
+      address: devops-web-4:80
+
+  tasks:
+  - name: retirer cookie
+    lineinfile:
+      path: /etc/haproxy/haproxy.cfg
+      regexp: '^cookie'
+      state: absent
+    notify: redemarrer haproxy
+  
+  handlers:
+  - name: redemarrer haproxy
+    service: name=haproxy state=restarted

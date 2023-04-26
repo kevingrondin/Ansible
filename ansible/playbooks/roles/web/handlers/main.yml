@@ -1,0 +1,6 @@
+---
+# handlers file for web
+- name: redemarrer apache2
+  service:
+    name: apache2
+    state: restarted

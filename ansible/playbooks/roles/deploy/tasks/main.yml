@@ -1,0 +1,50 @@
+---
+- name: installer dependences
+  apt: 
+    name: [git, python3-pymysql, mysql-client]
+    state: present
+
+- name: retirer serveur web du load balancer
+  haproxy:
+    state: disabled
+    host: '{{ inventory_hostname }}'
+    backend: habackend
+    socket: /var/lib/haproxy/stats
+    fail_on_not_found: yes
+  delegate_to: devops-lb-1
+
+- name: cloner un repo git
+  git:
+    repo: "https://gitlab.com/ttwthomas/app-example-php.git"
+    dest: /var/www/html/app
+    force: yes
+  register: git_repo
+
+- name: verifier que la page est up
+  uri:
+    url: "http://localhost/app/index.php"
+    return_content: yes
+  register: this
+  retries: 10
+  delay: 5
+  failed_when: "ansible_hostname not in this.content"
+
+- name: remettre serveur web du load balancer
+  haproxy:
+    state: enabled
+    host: '{{ inventory_hostname }}'
+    backend: habackend
+    socket: /var/lib/haproxy/stats
+    fail_on_not_found: yes
+  delegate_to: devops-lb-1
+
+- name: restaurer la base de données
+  mysql_db:
+    name: cocadmin
+    state: import
+    target: /var/www/html/app/creer_table.sql
+    login_host: devops-db-1
+    login_user: cocadmin
+    login_password: cocadmin
+  run_once: true
+  when: git_repo.changed

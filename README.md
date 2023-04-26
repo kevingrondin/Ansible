@@ -32,10 +32,20 @@ ansible all -m ping
 ansible all -m apt -a "name=nginx state=latest"
 ````
 
-## Exemple avec les playbook
+## Creer deux role
 
 ````shell
-ansible-playbook -i hosts playbook.yml
+ansible-galaxy init web
+````
+
+```shell
+ansible-galaxy init mysql
+```
+
+## Lancer un playbook
+
+````shell
+ansible-playbook lamp.yml
 ````
 
 
