@@ -1,0 +1,42 @@
+---
+- hosts: dev_web
+  tasks:
+  - name: installer apache2
+    apt:
+      name: apache2
+      state: present
+
+  - name: demarrer apache2
+    service:
+      name: apache2
+      state: started
+      enabled: yes
+  
+  - name: installer add-apt-repository
+    apt:
+      name: software-properties-common
+      state: present
+
+  - name: ajouter le repository de php
+    apt_repository:
+      repo: ppa:ondrej/php
+      state: present
+
+  - name: installer php et ses modules
+    apt:
+      name: 
+      - php8.1
+      - php8.1-mysql
+      - php8.1-cli
+      - php8.1-common
+      - php8.1-curl
+      - php8.1-gd
+      - php-apcu
+      update_cache: yes
+    notify: redemarrer apache2
+  
+  handlers:
+  - name: redemarrer apache2
+    service:
+      name: apache2
+      state: restarted
